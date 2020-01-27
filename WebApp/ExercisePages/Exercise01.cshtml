@@ -1,19 +1,85 @@
 ﻿@{
     Layout = "~/_Layout.cshtml";
     Page.Title = string.Format("Razor - {0}", "Exercise 01");
+
+    var myname = Request.Form["dataentry"];
+    var thebutton = Request.Form["theButton"];
+    string choices = "";
 }
 
 @section banner {
     <h1>@Page.Title</h1>
 }
 
+@if (IsPost)
+{
+    choices = Request.Form["GameGroup"];
+    if (thebutton.Equals("submit"))
+    {
+        //the Press Me button was pressed
+        if (string.IsNullOrEmpty(myname))
+        {
+            <p style="color:firebrick">You don't have a name?</p>
+        }
+        else if (choices.IsEmpty())
+        {
+            <p style="color:firebrick">You don't like to play games?</p>
+            choices = "";
+        }
+        else
+        {
+            <p>Hello there @myname</p>
+        }
+    }
+    else
+    {
+        //the Reset button was pressed
+        myname = "";
+
+        <p>You pressed the Reset button</p>
+        string choices = "";
+    }
+}
+@*else
+    {
+        // use to initialize items on your form BEFORE it is sent
+        // to the user for the FIRST time.
+        <p>IsPost = false</p>
+    }*@
+
 <form id="theForm" method="post">
     <div class="row">
-        <div class="offset-1">
-            <label>What is your Pokémon trainer name?</label>
+        <div class="offset-1 col">
+            <label id="label1" for="dataentry">Enter your name:</label>&nbsp;&nbsp;
+            <input type="text" id="dataentry" name="dataentry" value="@myname" />
+            <br /><br />
+            <button type="submit" id="theButton" name="theButton"
+                    value="submit" class="btn btn-primary">
+                Submit
+            </button>&nbsp;&nbsp;
+            <button type="submit" id="theButton" name="theButton"
+                    value="reset" class="btn btn-light">
+                Reset
+            </button>
+        </div>
+        <div class="offset-1 col">
+            <label id="lblGameGroup">Select you favourite brand of beer:</label><br />
+            <input type="checkbox" id="GameGroup" name="GameGroup" value="PS4"
+                   @*@(Array.IndexOf(choices.Split(','), "PS4") >= 0 ? "checked" : "")*@ />Budweiser<br />
+            <input type="checkbox" id="GameGroup" name="GameGroup" value="Computer"
+                   @*@(Array.IndexOf(choices.Split(','), "Computer") >= 0 ? "checked" : "")*@ />Canadian<br />
+            <input type="checkbox" id="GameGroup" name="GameGroup" value="XBOX One"
+                   @*@(Array.IndexOf(choices.Split(','), "XBOX One") >= 0 ? "checked" : "")*@ />Miller<br /><br />
         </div>
     </div>
     <div class="row">
-
+        <button type="submit" id="theButton" name="theButton"
+                value="submit" class="btn btn-primary">
+            Submit
+        </button>&nbsp;&nbsp;
+        <button type="submit" id="theButton" name="theButton"
+                value="reset" class="btn btn-light">
+            Reset
+        </button>
     </div>
 </form>
