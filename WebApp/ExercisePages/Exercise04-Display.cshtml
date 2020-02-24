@@ -1,0 +1,40 @@
+﻿@{
+    Layout = "~/_Layout.cshtml";
+    Page.Title = string.Format("Razor - {0}", "CRUD - WebGrid Display");
+
+    var pid = Request.QueryString["pid"];
+    <p>A search was done with the following partial string for ProductName: @pid</p>
+
+    if (string.IsNullOrEmpty(pid))
+    {
+        Response.Redirect("ProductSearch.cshtml");
+    }
+
+    var db = Database.Open("NWDB");
+    var partialstring = "%" + pid + "%";
+    var prodquery = @"SELECT ProductID, ProductName, "
+                + "CategoryID, UnitPrice, UnitsInStock, Discontinued "
+                + "FROM Products "
+                + "WHERE ProductName LIKE @0 "
+                + "ORDER BY ProductName";
+    var prodinfo = db.Query(prodquery, partialstring);
+
+    var grid = new WebGrid(prodinfo, rowsPerPage: 5);
+}
+@section banner {<h1>@Page.Title</h1>}
+<div class="offset-1">
+    <div class="col-11">
+        @grid.GetHtml("table table-bordered table-striped table-hover",
+        mode: WebGridPagerModes.All,
+        lastText: "Last",
+        firstText: "First",
+        columns: grid.Columns(
+            grid.Column(columnName: "ProductID", header: "ID"),
+            grid.Column(columnName: "ProductName"),
+            grid.Column(columnName: "CategoryID", header: "Cat"),
+            grid.Column(columnName: "UnitPrice", header: "$"),
+            grid.Column(columnName: "UnitsInStock", header: "UiS"),
+            grid.Column(columnName: "Discontinued", header: "Discontinued"),
+            grid.Column(header: "", format: @<text><a href="~/SamplePages/ProductEdit.cshtml?pid=@item.ProductID">Edit</a></text>)));
+    </div>
+</div>
