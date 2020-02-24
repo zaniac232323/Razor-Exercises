@@ -1,15 +1,17 @@
 ﻿@{
     Layout = "~/_Layout.cshtml";
-    Page.Title = string.Format("Razor - {0}", "Partial Name Query with SQL LIKE Page 2");
+    Page.Title = string.Format("Razor - {0}", "Exercise 02_B");
 
     //output variable
-    string artistid = "";
-    string artistname = "";
+    //string artistid = "";
+    //string artistname = "";
 
     //reteive the passed data value
     //to retreive the passed data use .QueryString["label"]
     //data is returned as a string
     var cid = Request.QueryString["cid"];
+
+    var choice = Request.Form["ArtistList"];
 
     //good practice
     //check that you actually retreived data
@@ -57,22 +59,87 @@
 @section banner {
     <h1>@Page.Title</h1>
 }
+@if (IsPost)
+{
 
-<table>
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Artist Name</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var row in results)
+
+    if (choice.Equals("0"))
+    {
+        <p style="color:firebrick">Select a product category to view:</p>
+    }
+    else
+    {
+        @*var productquery = @"SELECT ProductID
+    FROM Products
+    WHERE CategoryID = @0";
+        var productinfo = db.Query(productquery, choice);
+
+        if (productinfo.Count() == 0)
         {
-            <tr>
-                <td>@row.ArtistId</td>
-                <td>@row.Name</td>
-            </tr>
+            <p style="color:firebrick">There are no albums for the selected artist.</p>
         }
-    </tbody>
-</table>
+        else
+        {
+            
+        }*@
+        Response.Redirect("Exercise02_C.cshtml?cid=" + choice);
+    }
+}
+else
+{
+    if (results.Count() == 0)
+    {
+        <p style="color:firebrick">There are no artists on file.</p>
+    }
+}
+
+<form id="theform" method="post">
+    <div class="row offset-1">
+        <label class="label" for="CategoryList">Category:  </label>&nbsp;&nbsp;
+        <select id="ArtistList" name="ArtistList">
+            <option value="0">select artist...</option>
+            @foreach (var row in results)
+            {
+                //for the select control, the default display on an event
+                //is the 1st option tag
+                //to retain the option selected between posts, you need to
+                //set the selected option using the attribute selected
+                if (choice == row.ArtistID.ToString())
+                {
+                    <option value="@row.ArtistID" selected>@row.Name</option>
+                }
+                else
+                {
+                    <option value="@row.ArtistID">@row.Name</option>
+                }
+            }
+        </select>
+    </div><br />
+    <div class="row offset-1">
+        <button type="submit" id="theButton" name="theButton" value="submit"
+                class="btn btn-primary">
+            View albums ...
+        </button>
+    </div>
+</form>
+
+
+@*<table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Artist Name</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var row in results)
+            {
+                <tr>
+                    <td>@row.ArtistId</td>
+                    <td>@row.Name</td>
+                </tr>
+            }
+
+        </tbody>
+    </table>*@
