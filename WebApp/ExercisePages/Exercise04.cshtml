@@ -1,0 +1,184 @@
+﻿@{
+    Layout = "~/_Layout.cshtml";
+    Page.Title = string.Format("Razor - {0}", "Exercise 04");
+
+    //consider your need for global variables
+    var title = "";
+    var artistID = "0";
+    var releaseYear = "";
+    var releaseLabel = "";
+    //var unitsinstock = "";
+    //var unitsonorder = "";
+    //var reorderlevel = "";
+
+    var db = Database.Open("CHINOOK");
+    var artistquery = "SELECT ArtistId, Name FROM Artists ORDER BY Name";
+    var artistList = db.Query(artistquery);
+    //var categoryquery = @"SELECT CategoryID, CategoryName "
+    //        + "FROM Categories "
+    //        + "Order by CategoryName";
+    //var categorylist = db.Query(categoryquery);
+
+    //these are validator controls execute on the server side
+
+    Validation.Add("title",
+         Validator.Required("Title is required"),
+          Validator.StringLength(160, 1, "Title is limited to 160 characters"));
+
+    Validation.Add("artistID",
+        Validator.Required("artistID is required"));
+
+    Validation.Add("releaseYear",
+        Validator.Required("releaseYear is required"),
+        Validator.Range(1950, DateTime.Today.Year, "release Year must be between 1950 and the current year"));
+
+    Validation.Add("releaseLabel",
+        Validator.StringLength(50, 1, "Title is limited to 50 characters"));
+
+    //Validation.Add("UnitsInStock",
+    //    Validator.Integer("Units in stock must be a number."),
+    //    Validator.Range(0, 32767, "Units in stock must be between 0 and 32767"));
+
+    //Validation.Add("UnitsOnOrder",
+    //    Validator.Integer("Units on order must be a number."),
+    //    Validator.Range(0, 32767, "Units on order must be between 0 and 32767"));
+
+    //Validation.Add("ReorderLevel",
+    //    Validator.Integer("Reorder level must be a number."),
+    //    Validator.Range(0, 32767, "Reorder level must be between 0 and 32767"));
+
+    //compare two fields together (ie password)
+    //Validation.Add("ConfirmPassword",
+    //    Validator.Required("Missing confirm password"),
+    //      Validator.StringLength(160, 1, "Confirm password is too long"),
+    //      Validator.EqualsTo("Password", "Password not confirmed"));
+
+    //pattern testing (ie PostalCode)
+    //Validation.Add("PostalCode",
+    //     Validator.Regex(@"^[A-Za-z][0-9][A-Za-z][0-9][A-Za-z][0-9]$",
+    //     "Postal Code format invalid (T7T7T7"));
+}
+@section head{
+    @*<link href="~/Content/MyCssCopy.css" rel="stylesheet" />*@
+}
+
+@section banner{
+    <h1>@Page.Title</h1>
+}
+
+@if (IsPost)
+{
+    title = Request.Form["title"];
+    artistID = Request.Form["artistID"];
+    //categoryid = Request.Form["CategoryList"];
+    releaseYear = Request.Form["releaseYear"];
+    releaseLabel = Request.Form["releaseLabel"];
+    //unitsinstock = Request.Form["UnitsInStock"];
+    //unitsonorder = Request.Form["UnitsOnOrder"];
+    //reorderlevel = Request.Form["ReorderLevel"];
+    var thebutton = Request.Form["FormButton"];
+
+    if (thebutton.Equals("Clear")) //pressed the CLEAR button
+    {
+        title = "";
+        artistID = "0";
+        //categoryid = "0";
+        releaseYear = "";
+        releaseLabel = "";
+        //unitsinstock = "";
+        //unitsonorder = "";
+        //reorderlevel = "";
+    }
+    else //pressed the ADD button
+    {
+        if (Validation.IsValid())
+        {
+            try
+            {
+                var inscommand = "INSERT INTO Albums"
+                    + "(Title, ArtistId, ReleaseYear, ReleaseLabel)"
+                    + "VALUES(@0, @1, @2, @3)";
+                db.Execute(inscommand, title,
+                    artistID.Equals("0") ? null : artistID,
+                    //categoryid.Equals("0") ? null : categoryid,
+                    string.IsNullOrEmpty(releaseYear) ? null : releaseYear,
+                    string.IsNullOrEmpty(releaseLabel) ? null : releaseLabel);
+                <div class="col-12 text-center">
+                    <p style="color:green">
+                        Album has been ADDED
+                    </p>
+                </div>
+            }
+            catch (Exception ex)
+            {
+                <div class="col-12 text-center">
+                    <p style="color:firebrick; font-size:large">
+                        Processing error: @ex.Message
+                    </p>
+                </div>
+            }
+        }
+    }
+}
+else
+{
+
+}
+@Html.ValidationSummary()
+<form id="theForm" action="" method="post">
+    <div class="row row-cols-2">
+        <div class="col text-right">
+            <label id="lblTitle" for="title">Title</label>
+        </div>
+        <div class="col text-left">
+            <input type="text" name="title" value="@title" />
+        </div><br />
+        <div class="col text-right">
+            <label id="lblSupplierList" for="SupplierList">Artist</label>
+        </div>
+        <div class="col text-left">
+            <select name="artistID">
+                <option value="0">select...</option>
+                @foreach (var acollectionrow in artistList)
+                {
+                    if (acollectionrow.ArtistId.ToString() == artistID)
+                    {
+                        <option value="@acollectionrow[0]" selected>@acollectionrow[1]</option>
+                    }
+                    else
+                    {
+                        <option value="@acollectionrow[0]">@acollectionrow[1]</option>
+                    }
+                }
+            </select>
+        </div><br />
+        <div class="col text-right">
+            <label id="lblreleaseYear" for="releaseYear">Release Year</label>
+        </div>
+        <div class="col text-left">
+            <input type="text" name="releaseYear" value="@releaseYear" />
+        </div><br />
+        <div class="col text-right">
+            <label id="lblreleaseLabel" for="releaseLabel">Release Label</label>
+        </div>
+        <div class="col text-left">
+            <input type="text" name="releaseLabel" value="@releaseLabel" />
+        </div><br />
+    </div>
+    <div class="row">
+        <div class="col-12 text-center">
+            <input type="submit" id="theAdd" name="FormButton"
+                   class="btn btn-primary" value="Add" />
+            <input type="submit" id="theClear" name="FormButton" formnovalidate
+                   class="btn" value="Clear" />
+        </div>
+    </div>
+    @* confirmation can be done on a button click using javascript
+        we will ask the user to confirm the insertion of a product*@
+    <script type="text/javascript">
+        document.getElementById("theAdd").onclick = ConfirmAdd;
+        function ConfirmAdd() {
+            return confirm("Are you sure you want to ADD @title?");
+        }
+    </script>
+</form>
