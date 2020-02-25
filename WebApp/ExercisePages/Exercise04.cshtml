@@ -1,46 +1,42 @@
 ﻿@{
     Layout = "~/_Layout.cshtml";
-    Page.Title = string.Format("Razor - {0}", "CRUD - Search");
+    Page.Title = string.Format("Razor - {0}", "Exercise 04 - Search");
 
-    var productsearch = Request.Form["ProductSearch"];
+    var albumsearch = Request.Form["AlbumSearch"];
 
-    var db = Database.Open("NWDB");
-    var partialsearchstring = "%" + productsearch + "%";
+    var db = Database.Open("CHINOOK");
+    var partialsearchstring = "%" + albumsearch + "%";
 
-    var queryStatement = "SELECT ProductID, ProductName, CategoryID, "
-                        + "UnitPrice, UnitsInStock, Discontinued "
-                        + "FROM Products "
-                        + "WHERE ProductName like @0 "
-                        + "ORDER BY ProductName";
-    var queryProducts = db.Query(queryStatement, partialsearchstring);
+    var queryStatement = "SELECT AlbumId, Title FROM Albums WHERE Title like @0 ORDER BY Title";
+    var queryAlbums = db.Query(queryStatement, partialsearchstring);
 }
 @section banner{<h1>@Page.Title</h1>}
 
 <form id="theForm" action="" method="post">
     <div class="col-sm-3">
-        <label id="forProductSearch">Product Name</label><br />
-        <input type="text" name="ProductSearch" value="@productsearch"><br /><br />
+        <label id="forAlbumSearch">Album Name</label><br />
+        <input type="text" name="AlbumSearch" value="@albumsearch"><br /><br />
         <button type="submit" class="btn btn-primary" name="Search" id="theSearch">Search</button>
     </div><br />
 </form>
 <div class="col-sm-8">
     @if (IsPost)
+{
+    if (albumsearch.IsEmpty())
     {
-        if (productsearch.IsEmpty())
-        {
             <p><strong><span style="color:firebrick">Enter a product name (or partial name).</span></strong></p>
+    }
+    else
+    {
+
+        if (queryAlbums.Count() == 0)
+        {
+                <p><strong><span style="color:firebrick">Nothing found for search argument.</span></strong></p>
         }
         else
         {
-
-            if (queryProducts.Count() == 0)
-            {
-                <p><strong><span style="color:firebrick">Nothing found for search argument.</span></strong></p>
-            }
-            else
-            {
-                Response.Redirect("Exercise04-Display.cshtml?pid=" + productsearch);
-            }
+            Response.Redirect("Exercise04-Display.cshtml?pid=" + albumsearch);
         }
     }
+}
 </div>

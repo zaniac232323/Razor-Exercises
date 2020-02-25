@@ -1,25 +1,24 @@
 ﻿@{
     Layout = "~/_Layout.cshtml";
-    Page.Title = string.Format("Razor - {0}", "CRUD - WebGrid Display");
+    Page.Title = string.Format("Razor - {0}", "Exercise 04 - WebGrid Display");
 
     var pid = Request.QueryString["pid"];
     <p>A search was done with the following partial string for ProductName: @pid</p>
 
     if (string.IsNullOrEmpty(pid))
     {
-        Response.Redirect("ProductSearch.cshtml");
+        Response.Redirect("Exercise04.cshtml");
     }
 
-    var db = Database.Open("NWDB");
+    var db = Database.Open("CHINOOK");
     var partialstring = "%" + pid + "%";
-    var prodquery = @"SELECT ProductID, ProductName, "
-                + "CategoryID, UnitPrice, UnitsInStock, Discontinued "
-                + "FROM Products "
-                + "WHERE ProductName LIKE @0 "
-                + "ORDER BY ProductName";
-    var prodinfo = db.Query(prodquery, partialstring);
+    var albumquery = @"SELECT ALbumId, Title, ArtistId, ReleaseYear, ReleaseLabel "
+                + "FROM Albums "
+                + "WHERE Title LIKE @0 "
+                + "ORDER BY Title";
+    var albuminfo = db.Query(albumquery, partialstring);
 
-    var grid = new WebGrid(prodinfo, rowsPerPage: 5);
+    var grid = new WebGrid(albuminfo, rowsPerPage: 5);
 }
 @section banner {<h1>@Page.Title</h1>}
 <div class="offset-1">
@@ -29,12 +28,11 @@
         lastText: "Last",
         firstText: "First",
         columns: grid.Columns(
-            grid.Column(columnName: "ProductID", header: "ID"),
-            grid.Column(columnName: "ProductName"),
-            grid.Column(columnName: "CategoryID", header: "Cat"),
-            grid.Column(columnName: "UnitPrice", header: "$"),
-            grid.Column(columnName: "UnitsInStock", header: "UiS"),
-            grid.Column(columnName: "Discontinued", header: "Discontinued"),
-            grid.Column(header: "", format: @<text><a href="~/SamplePages/ProductEdit.cshtml?pid=@item.ProductID">Edit</a></text>)));
+            grid.Column(columnName: "AlbumID", header: "ID"),
+            grid.Column(columnName: "Title", header: "Title"),
+            grid.Column(columnName: "ArtistID", header: "Atist ID"),
+            grid.Column(columnName: "ReleaseYear", header: "Release Year"),
+            grid.Column(columnName: "ReleaseLabel", header: "Release Label"),
+            grid.Column(header: "", format: @<text><a href="~/ExercisePages/Exercise04-Edit.cshtml?pid=@item.AlbumId">Edit</a></text>)))
     </div>
 </div>
