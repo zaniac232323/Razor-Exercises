@@ -9,74 +9,19 @@
     }
     var albumid = Request.Form["AlbumId"];
     var title = Request.Form["Title"];
-    //var supplierid = Request.Form["SupplierList"];
+
     var artistid = Request.Form["ArtistId"];
     var releaseYear = Request.Form["ReleaseYear"];
     var releaseLabel = Request.Form["ReleaseLabel"];
-    //var unitsinstock = Request.Form["UnitsInStock"];
-    //var unitsonorder = Request.Form["UnitsOnOrder"];
-    //var reorderlevel = Request.Form["ReorderLevel"];
-    //var discontinued = Request.Form["Discontinued"];
+
     var thebutton = Request.Form["theButton"];
 
     var message = "";
 
-    //these are validator controls execute on the server side
+    albumid = pid;
 
-    Validation.Add("Title",
-        Validator.Required("Title is required"),
-        Validator.StringLength(160, 1, "Title is limited to 160 characters"));
-
-    Validation.Add("ArtistId",
-        Validator.Required("artistID is required"));
-
-    Validation.Add("ReleaseYear",
-        Validator.Required("releaseYear is required"),
-        Validator.Range(1950, DateTime.Today.Year, "release Year must be between 1950 and the current year"));
-
-    Validation.Add("ReleaseLabel",
-        Validator.StringLength(50, 1, "Title is limited to 50 characters"));
-
-    //Validation.Add("UnitsInStock",
-    //    Validator.Integer("Units in stock must be a number."),
-    //    Validator.Range(0, 32767, "Units in stock must be between 0 and 32767"));
-
-    //Validation.Add("UnitsOnOrder",
-    //    Validator.Integer("Units on order must be a number."),
-    //    Validator.Range(0, 32767, "Units on order must be between 0 and 32767"));
-
-    //Validation.Add("ReorderLevel",
-    //    Validator.Integer("Reorder level must be a number."),
-    //    Validator.Range(0, 32767, "Reorder level must be between 0 and 32767"));
-
-    if (IsPost)
-    {
-        //discontinued is a checkbox
-        //the possible values from the check box is null (not checked) or "on" (checked)
-        //the acceptable sql values for a bit are 0 and 1
-        //if (discontinued == null)
-        //{
-        //    discontinued = "0";
-        //}
-        //else
-        //{
-        //    discontinued = "1";
-        //}
-    }
-    else
-    {
-        albumid = pid;
-        //discontinued = "0";
-    }
     var db = Database.Open("CHINOOK");
-    //var supplierStatement = "SELECT SupplierID, CompanyName "
-    //                    + "FROM Suppliers "
-    //                    + "ORDER BY CompanyName";
-    //var querySuppliers = db.Query(supplierStatement);
-    //var categoryStatement = "SELECT CategoryID, CategoryName "
-    //                    + "FROM Categories "
-    //                    + "ORDER BY CategoryName";
-    //var queryCategories = db.Query(categoryStatement);
+
     var queryStatement = "SELECT AlbumId, Title, ArtistId, ReleaseYear, ReleaseLabel FROM Albums WHERE AlbumId = @0";
     var queryAlbums = db.QuerySingle(queryStatement, pid);
     if (queryAlbums == null)
@@ -86,6 +31,35 @@
 
     var artistquery = "SELECT ArtistId, Name FROM Artists ORDER BY Name";
     var artistList = db.Query(artistquery);
+
+    List<SelectListItem> selectListItems = new List<SelectListItem>();
+    selectListItems.Add(new SelectListItem
+    {
+        Value = "0",
+        Text = "select..."
+    });
+    foreach (var art in artistList)
+    {
+        selectListItems.Add(new SelectListItem
+        {
+            Value = art.ArtistId.ToString(),
+            Text = art.Name
+        });
+    }
+
+    Validation.Add("Title",
+        Validator.Required("Title is required"),
+        Validator.StringLength(160, 1, "Title is limited to 160 characters"));
+
+    Validation.Add("ArtistId",
+        Validator.Range(1, selectListItems.Count, "artistID is required"));
+
+    Validation.Add("ReleaseYear",
+        Validator.Required("releaseYear is required"),
+        Validator.Range(1950, DateTime.Today.Year, "release Year must be between 1950 and the current year"));
+
+    Validation.Add("ReleaseLabel",
+        Validator.StringLength(50, 0, "Release label is limited to 50 characters"));
 }
 
 @section head{
@@ -106,31 +80,14 @@
     {
         try
         {
-            //if (thebutton.Equals("discontinue"))
-            //{
-            //    var sqlcommand = "UPDATE Products SET "
-            //                    + "Discontinued = 1 "
-            //                    + "WHERE ProductID = @0";
-            //    var rowsaffected = db.Execute(sqlcommand, albumid);
-            //    if (rowsaffected > 0)
-            //    {
-            //        discontinued = "1";
-            //        message = "Product has been DISCONTINUED";
-            //    }
-            //    else
-            //    {
-            //        message = "Product NOT found";
-            //    }
-            //}
-            //else
+            
             if (thebutton.Equals("update"))
             {
                 var sqlcommand = "UPDATE Albums SET Title =@0, ArtistId = @1, ReleaseYear = @2, ReleaseLabel = @3 WHERE AlbumId = @4";
                 var rowsaffected = db.Execute(sqlcommand, title,
-                    albumid.Equals("0") ? null : albumid,
-                    artistid.Equals("0") ? null : artistid,
-                    string.IsNullOrEmpty(releaseYear) ? null : releaseYear,
-                    string.IsNullOrEmpty(releaseLabel) ? null : releaseLabel);
+                    artistid,
+                    releaseYear,
+                    string.IsNullOrEmpty(releaseLabel) ? null : releaseLabel, pid);
                 if (rowsaffected > 0)
                 {
                     message = "Album has been UPDATED";
@@ -155,14 +112,11 @@
                 }
                 albumid = "";
                 title = "";
-                //supplierid = "0";
+                
                 artistid = "0";
                 releaseYear = "";
                 releaseLabel = "";
-                //unitsinstock = "";
-                //unitsonorder = "";
-                //reorderlevel = "";
-                //discontinued = "0";
+                
             }
         }
         catch (Exception ex)
@@ -245,10 +199,6 @@ else //IsPost=false
                     value="update">
                 Update
             </button>&nbsp;&nbsp;&nbsp;
-            <button type="submit" name="theButton" id="theDiscontinue" class="btn btn-primary" formnovalidate
-                    value="discontinue">
-                Discontinue
-            </button>&nbsp;&nbsp;&nbsp;
             <button type="submit" name="theButton" id="theDelete" class="btn btn-primary" formnovalidate
                     value="delete">
                 Delete Record
@@ -259,16 +209,12 @@ else //IsPost=false
             </button>
         </div>
     </div>
-    @* confirmation can be done on a button click using javascript
+     @*confirmation can be done on a button click using javascript
         we will ask the user to confirm the discontinuing of a product*@
-    @*<script type="text/javascript">
-        document.getElementById("theDiscontinue").onclick = ConfirmDiscontinue;
-        function ConfirmDiscontinue() {
-            return confirm("Are you sure you want to DISCONTINUE @title?");
-        }
+    <script type="text/javascript">
         document.getElementById("theDelete").onclick = ConfirmDelete;
         function ConfirmDelete() {
             return confirm("Are you sure you want to DELETE @title?");
         }
-    </script>*@
+    </script>
 </form>
